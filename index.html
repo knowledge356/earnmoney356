@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Watcher</title>
+<style>
+    #adContainer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+        display: none; /* Initially hidden */
+    }
+    #adContent {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 640px; /* Adjust as needed */
+        height: 360px; /* Adjust as needed */
+        background-color: #000; /* Black background for YouTube player */
+    }
+    #timer {
+        font-size: 24px;
+        color: red; /* Timer color is red */
+        position: absolute;
+        top: 10px;
+        left: 10px;
+    }
+    #closeButton {
+        display: none; /* Initially hidden */
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    #watchAdButton {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+</style>
+</head>
+<body>
+
+<div id="adContainer">
+    <div id="adContent">
+        <div id="timer"></div> <!-- Timer -->
+        <div id="player"></div> <!-- YouTube player will be injected here -->
+        <button id="closeButton" onclick="closeAd()">Close Ad</button>
+    </div>
+</div>
+
+<div id="mainContent">
+    <!-- Your main content here -->
+    <h1>Welcome to my website!</h1>
+    <p>This is some content on my website.</p>
+</div>
+
+<div id="dashboard" style="margin-top: 20px;">
+    <h2>User Dashboard</h2>
+    <p>Earnings: $<span id="earnings">0</span></p>
+</div>
+
+<button id="watchAdButton" onclick="startAd()">Watch Ad & Earn Money</button>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+    var adTimer;
+    var adDuration = 5; // in seconds (for testing, change it back to 30 for actual timer)
+    var reward = 0.001; // reward amount in dollars
+    var userFund = parseFloat(localStorage.getItem('userFund')) || 0; // user's fund retrieved from localStorage
+    document.getElementById("earnings").innerHTML = userFund.toFixed(3); // Display user's fund
+
+    var player; // YouTube player object
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '100%',
+            width: '100%',
+            videoId: 'VIDEO_ID_HERE', // Replace 'VIDEO_ID_HERE' with the actual YouTube video ID
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+        // Play the video when player is ready
+        event.target.playVideo();
+    }
+
+    function onPlayerStateChange(event) {
+        // If video ended, end the ad
+        if (event.data == YT.PlayerState.ENDED) {
+            endAd();
+        }
+    }
+
+    function startAd() {
+        // Reset timer
+        clearInterval(adTimer);
+
+        // Show ad container
+        document.getElementById("adContainer").style.display = "block";
+        document.getElementById("timer").innerHTML = adDuration;
+
+        adTimer = setInterval(function() {
+            adDuration--;
+            document.getElementById("timer").innerHTML = adDuration;
+            if (adDuration <= 0) {
+                clearInterval(adTimer);
+                endAd();
+            }
+        }, 1000);
+    }
+
+    function endAd() {
+        // Display close button after the timer ends
+        document.getElementById("closeButton").style.display = "block";
+    }
+
+    function closeAd() {
+        // Hide ad container and close button
+        document.getElementById("adContainer").style.display = "none";
+        document.getElementById("closeButton").style.display = "none";
+
+        // Add reward to user's fund
+        userFund += reward;
+        document.getElementById("earnings").innerHTML = userFund.toFixed(3);
+
+        // Store user's fund value in localStorage
+        localStorage.setItem('userFund', userFund);
+
+        // Refresh the page to start over
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
+
+
+
+
+
